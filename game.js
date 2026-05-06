@@ -1,12 +1,58 @@
-public class Main {
-    public static void main(String[] args) {
+import * as THREE from "three";
 
-  const bounds = {
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x202020);
+
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+
+camera.position.set(0, 2, 5);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// This is your temporary player.
+const playerGeometry = new THREE.BoxGeometry(1, 1, 1);
+const playerMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff88 });
+const player = new THREE.Mesh(playerGeometry, playerMaterial);
+
+player.position.set(0, 0, 0);
+scene.add(player);
+
+const bounds = {
   minX: -10,
   maxX: 10,
   minZ: -10,
   maxZ: 10
 };
 
-player.position.x = Math.max(bounds.minX, Math.min(bounds.maxX, player.position.x));
-player.position.z = Math.max(bounds.minZ, Math.min(bounds.maxZ, player.position.z));
+function clampPlayerToBounds() {
+  player.position.x = Math.max(bounds.minX, Math.min(bounds.maxX, player.position.x));
+  player.position.z = Math.max(bounds.minZ, Math.min(bounds.maxZ, player.position.z));
+}
+
+const light = new THREE.DirectionalLight(0xffffff, 2);
+light.position.set(3, 5, 4);
+scene.add(light);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  player.rotation.x += 0.01;
+  player.rotation.y += 0.01;
+
+  clampPlayerToBounds();
+
+  renderer.render(scene, camera);
+}
+
+animate();
