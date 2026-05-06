@@ -78,3 +78,15 @@ Added connector lines between the player and followers, forming a visible tetrah
 Tightened collision from one large group hitbox to individual node hitboxes.  
 Moved tetrahedron rotation into a dedicated function.  
 Prevented the rotating body from clipping through walls.
+
+## V0.0.17 Alpha Dev
+
+Added direct Y-axis movement.  
+Commented out the old jump mechanic.  
+Temporary vertical control uses `Z` until spacebar input is reworked.
+
+## V0.0.18 Alpha Dev
+
+Added smooth follow-camera behavior using a camera offset from `playerGroup`.  
+Camera now lerps toward the desired position instead of snapping instantly.  
+This prepares camera movement to become a controllable gameplay mechanic.

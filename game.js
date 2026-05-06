@@ -12,15 +12,21 @@ camera.position.set(0, 4, 5);
 camera.lookAt(0, 0, 0);
 const cameraMoveSpeed = 0.12;
 const tetraRadius = 2;
+const cameraOffset = new THREE.Vector3(0, 4, 5);
 function moveCamera() {
-	if (keys['j']) camera.position.x -= cameraMoveSpeed;
-	if (keys['l']) camera.position.x += cameraMoveSpeed;
+	if (keys['j']) cameraOffset.x -= cameraMoveSpeed;
+	if (keys['l']) cameraOffset.x += cameraMoveSpeed;
 
-	if (keys['i']) camera.position.y += cameraMoveSpeed;
-	if (keys['k']) camera.position.y -= cameraMoveSpeed;
+	if (keys['i']) cameraOffset.y += cameraMoveSpeed;
+	if (keys['k']) cameraOffset.y -= cameraMoveSpeed;
 
-	if (keys['u']) camera.position.z -= cameraMoveSpeed;
-	if (keys['o']) camera.position.z += cameraMoveSpeed;
+	if (keys['u']) cameraOffset.z -= cameraMoveSpeed;
+	if (keys['o']) cameraOffset.z += cameraMoveSpeed;
+}
+
+function snapCamera() {
+	const desiredCameraPosition = playerGroup.position.clone().add(cameraOffset);
+	camera.position.lerp(desiredCameraPosition, 0.1);
 }
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -129,10 +135,10 @@ createConnector(followerThree, followerOne);
 // Define the boundaries of the room
 
 const bounds = {
-	minX: -10,
-	maxX: 30,
-	minZ: -30,
-	maxZ: 10,
+	minX: -50,
+	maxX: 50,
+	minZ: -50,
+	maxZ: 50,
 };
 //here start building walls
 
@@ -215,13 +221,13 @@ scene.add(ambientLight);
 
 const keys = {};
 
-// Jump / gravity variables
-let velocityY = 0;
+// Jump / gravity variables unneeded for now, but may be useful later if I want to add more complex platforming elements, for now I'm just using it to let the player jump in place
+//let velocityY = 0;
 let isOnGround = true;
 
-const gravity = 0.018;
-const jumpStrength = 0.25;
-const floorY = playerDim;
+//const gravity = 0.018;
+//const jumpStrength = 0.25;
+//const floorY = playerDim;
 
 window.addEventListener('keydown', (event) => {
 	keys[event.key.toLowerCase()] = true;
@@ -251,6 +257,7 @@ function movePlayer() {
 		playerGroup.position.copy(oldPosition);
 	}
 }
+
 // old jump and gravity function, may be useful for later if I want to add more complex platforming elements, but for now I'm just using it to let the player jump in place
 //function applyJumpAndGravity() {
 //	playerGroup.position.y += velocityY;
@@ -267,6 +274,7 @@ function animate() {
 	requestAnimationFrame(animate);
 
 	movePlayer();
+	snapCamera();
 	moveCamera();
 
 	//	applyJumpAndGravity();
