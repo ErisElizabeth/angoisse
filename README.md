@@ -63,3 +63,8 @@ Created the tetrahedron with three followers and mathematically placed them.
 ## V0.0.13 Alpha Dev
 
 Placed player and followers in `playerGroup`; they now all move together as a happy family.
+
+## V0.0.14 Alpha Dev
+
+Re-centered the tetrahedral player body so it rotates around its true center.
+Added shared halo logic and 3-axis group rotation.

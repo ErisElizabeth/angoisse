@@ -1,3 +1,6 @@
+//angoisse    game.js
+//This is the main game file. It sets up the scene, camera, and renderer, creates the player and followers, builds the walls and floor, and contains the main game loop that handles player movement, camera movement, and rendering.
+//imports
 import * as THREE from 'three';
 
 const scene = new THREE.Scene();
@@ -8,7 +11,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.position.set(0, 4, 5);
 camera.lookAt(0, 0, 0);
 const cameraMoveSpeed = 0.12;
-
+const tetraRadius = 2;
 function moveCamera() {
 	if (keys['j']) camera.position.x -= cameraMoveSpeed;
 	if (keys['l']) camera.position.x += cameraMoveSpeed;
@@ -27,7 +30,7 @@ const playerGroup = new THREE.Group();
 scene.add(playerGroup);
 
 // This is your main player.
-const playerDim = 0.25;
+const playerDim = 0.1;
 const playerGeometry = new THREE.IcosahedronGeometry(playerDim, 0);
 const playerMaterial = new THREE.MeshPhongMaterial({
 	color: 0xb847d1,
@@ -53,9 +56,9 @@ function addHaloTo(object) {
 
 const playerBox = new THREE.Box3().setFromObject(player);
 
-player.position.set(0, playerDim, 0);
+player.position.set(0, playerDim + tetraRadius, 0);
 addHaloTo(player);
-
+// old math I'm hoarding for later use, may be useful for positioning followers in a tetrahedron shape around the player
 const legLength = 4;
 const tetraHeight = (Math.sqrt(6) / 3) * legLength;
 const baseOnePoint = (Math.sqrt(3) / 3) * legLength;
@@ -79,6 +82,18 @@ playerGroup.add(player);
 playerGroup.add(followerOne);
 playerGroup.add(followerTwo);
 playerGroup.add(followerThree);
+
+// Position the player and followers at the vertices of a tetrahedron
+player.position.set(1, 1, 1);
+followerOne.position.set(1, -1, -1);
+followerTwo.position.set(-1, 1, -1);
+followerThree.position.set(-1, -1, 1);
+
+player.position.normalize().multiplyScalar(tetraRadius);
+followerOne.position.normalize().multiplyScalar(tetraRadius);
+followerTwo.position.normalize().multiplyScalar(tetraRadius);
+followerThree.position.normalize().multiplyScalar(tetraRadius);
+
 const bounds = {
 	minX: -10,
 	maxX: 30,
@@ -135,8 +150,10 @@ scene.add(bwestWall);
 //add a floor
 const floor = new THREE.Mesh(new THREE.BoxGeometry(20, 0.1, 40), new THREE.MeshStandardMaterial({ color: 0x222222 }));
 floor.position.set(0, -0.05, -10);
+floor.material.opacity = 0.75;
+floor.material.transparent = true;
 scene.add(floor);
-//bounding playeraaaaaaaaaaswwa
+//bounding player to the room
 function clampPlayerToBounds() {
 	playerGroup.position.x = Math.max(
 		bounds.minX + playerDim,
@@ -228,6 +245,10 @@ function animate() {
 	followerThree.rotation.x += 0.01;
 	followerThree.rotation.y += 0.01;
 	followerThree.rotation.z += 0.01;
+
+	playerGroup.rotation.x += 0.01;
+	playerGroup.rotation.y += 0.01;
+	playerGroup.rotation.z += 0.01;
 
 	renderer.render(scene, camera);
 }
