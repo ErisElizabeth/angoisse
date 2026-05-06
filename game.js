@@ -7,7 +7,18 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 
 camera.position.set(0, 4, 5);
 camera.lookAt(0, 0, 0);
+const cameraMoveSpeed = 0.12;
 
+function moveCamera() {
+	if (keys['j']) camera.position.x -= cameraMoveSpeed;
+	if (keys['l']) camera.position.x += cameraMoveSpeed;
+
+	if (keys['i']) camera.position.y += cameraMoveSpeed;
+	if (keys['k']) camera.position.y -= cameraMoveSpeed;
+
+	if (keys['u']) camera.position.z -= cameraMoveSpeed;
+	if (keys['o']) camera.position.z += cameraMoveSpeed;
+}
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -21,9 +32,6 @@ const playerMaterial = new THREE.MeshPhongMaterial({
 	emissiveIntensity: 0.5, // How strong it is
 });
 const player = new THREE.Mesh(playerGeometry, playerMaterial);
-//unneeded after a  rev
-//const cubeSize = playerDim;
-//const playerRadius = cubeSize * Math.sqrt(3) / 2;
 
 //  Create a larger "halo" version of the same geometry
 const haloGeometry = new THREE.IcosahedronGeometry(playerDim * 1.3, 0);
@@ -35,14 +43,38 @@ const haloMaterial = new THREE.MeshBasicMaterial({
 	side: THREE.BackSide, // Renders on the inside to avoid covering the player
 });
 //
-const halo = new THREE.Mesh(haloGeometry, haloMaterial);
-player.add(halo); // Attach it directly to the player
+function addHaloTo(object) {
+	const halo = new THREE.Mesh(haloGeometry, haloMaterial);
+	object.add(halo);
+}
 
 const playerBox = new THREE.Box3().setFromObject(player);
 
 player.position.set(0, playerDim, 0);
 scene.add(player);
+addHaloTo(player);
 
+const legLength = 4;
+const tetraHeight = (Math.sqrt(6) / 3) * legLength;
+const baseOnePoint = (Math.sqrt(3) / 3) * legLength;
+const baseTwoPoint = (Math.sqrt(3) / 6) * legLength;
+const baseThreePoint = legLength / 2;
+const legPositionY = playerDim + tetraHeight;
+const followerOne = new THREE.Mesh(playerGeometry, playerMaterial);
+
+followerOne.position.set(baseOnePoint, legPositionY, 0);
+scene.add(followerOne);
+addHaloTo(followerOne);
+const followerTwo = new THREE.Mesh(playerGeometry, playerMaterial);
+
+followerTwo.position.set(-baseTwoPoint, legPositionY, -baseThreePoint);
+scene.add(followerTwo);
+addHaloTo(followerTwo);
+const followerThree = new THREE.Mesh(playerGeometry, playerMaterial);
+
+followerThree.position.set(-baseTwoPoint, legPositionY, baseThreePoint);
+scene.add(followerThree);
+addHaloTo(followerThree);
 const bounds = {
 	minX: -10,
 	maxX: 30,
@@ -120,7 +152,7 @@ let velocityY = 0;
 let isOnGround = true;
 
 const gravity = 0.018;
-const jumpStrength = 0.35;
+const jumpStrength = 0.25;
 const floorY = playerDim;
 
 window.addEventListener('keydown', (event) => {
@@ -168,11 +200,26 @@ function animate() {
 	requestAnimationFrame(animate);
 
 	movePlayer();
+	moveCamera();
+
 	applyJumpAndGravity();
 	clampPlayerToBounds();
-
+	camera.lookAt(player.position);
 	player.rotation.x += 0.01;
 	player.rotation.y += 0.01;
+	player.rotation.z += 0.01;
+
+	followerOne.rotation.x += 0.01;
+	followerOne.rotation.y += 0.01;
+	followerOne.rotation.z += 0.01;
+
+	followerTwo.rotation.x += 0.01;
+	followerTwo.rotation.y += 0.01;
+	followerTwo.rotation.z += 0.01;
+
+	followerThree.rotation.x += 0.01;
+	followerThree.rotation.y += 0.01;
+	followerThree.rotation.z += 0.01;
 
 	renderer.render(scene, camera);
 }

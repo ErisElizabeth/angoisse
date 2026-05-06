@@ -46,3 +46,9 @@ Cube is now a "glowing" icosahedron
 \## V0.0.10 Alpha Dev
 Moved development workflow into VS Code with Prettier and local live testing.
 Confirmed visible changes render correctly.
+
+\## V0.0.10 Alpha Dev
+Added camera controls
+
+\## V0.0.11 Alpha Dev
+created the tetrahedron with 3 follower[Number] and mathamaticlly placed them
