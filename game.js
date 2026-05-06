@@ -21,8 +21,9 @@ document.body.appendChild(renderer.domElement);
 const playerGeometry = new THREE.BoxGeometry(1, 1, 1);
 const playerMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff88 });
 const player = new THREE.Mesh(playerGeometry, playerMaterial);
-
-player.position.set(0, 0, 0);
+const cubeSize = 1;
+const playerRadius = cubeSize * Math.sqrt(3) / 2;
+player.position.set(0, playerRadius, 0);
 scene.add(player);
 
 const bounds = {
@@ -71,11 +72,18 @@ const floor = new THREE.Mesh(
 );
 floor.position.set(0, -0.05, 0);
 scene.add(floor);
+//bounding playeraaaaaaaaaaswwa
 function clampPlayerToBounds() {
-  player.position.x = Math.max(bounds.minX, Math.min(bounds.maxX, player.position.x));
-  player.position.z = Math.max(bounds.minZ, Math.min(bounds.maxZ, player.position.z));
-}
+  player.position.x = Math.max(
+    bounds.minX + playerRadius,
+    Math.min(bounds.maxX - playerRadius, player.position.x)
+  );
 
+  player.position.z = Math.max(
+    bounds.minZ + playerRadius,
+    Math.min(bounds.maxZ - playerRadius, player.position.z)
+  );
+}
 const light = new THREE.DirectionalLight(0xffffff, 2);
 light.position.set(3, 5, 4);
 scene.add(light);
