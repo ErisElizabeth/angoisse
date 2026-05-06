@@ -31,7 +31,39 @@ const bounds = {
   minZ: -10,
   maxZ: 10
 };
+//here
 
+const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+
+const northWall = new THREE.Mesh(
+  new THREE.BoxGeometry(22, 1, 0.5),
+  wallMaterial
+);
+northWall.position.set(0, 0.5, -10);
+scene.add(northWall);
+
+const southWall = new THREE.Mesh(
+  new THREE.BoxGeometry(22, 1, 0.5),
+  wallMaterial
+);
+southWall.position.set(0, 0.5, 10);
+scene.add(southWall);
+
+const eastWall = new THREE.Mesh(
+  new THREE.BoxGeometry(0.5, 1, 22),
+  wallMaterial
+);
+eastWall.position.set(10, 0.5, 0);
+scene.add(eastWall);
+
+const westWall = new THREE.Mesh(
+  new THREE.BoxGeometry(0.5, 1, 22),
+  wallMaterial
+);
+westWall.position.set(-10, 0.5, 0);
+scene.add(westWall);
+
+//end here
 function clampPlayerToBounds() {
   player.position.x = Math.max(bounds.minX, Math.min(bounds.maxX, player.position.x));
   player.position.z = Math.max(bounds.minZ, Math.min(bounds.maxZ, player.position.z));

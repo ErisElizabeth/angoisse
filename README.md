@@ -7,5 +7,9 @@ cube spinning in a 3D space
 
 V0.0.2 Alpha Dev
 
-The spinning cube now moves with keyboard commands
+the spinning cube now moves with keyboard commands
+
+V0.0.3 Alpha Dev
+
+bounderies established and visible
 
