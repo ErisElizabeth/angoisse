@@ -68,3 +68,13 @@ Placed player and followers in `playerGroup`; they now all move together as a ha
 
 Re-centered the tetrahedral player body so it rotates around its true center.
 Added shared halo logic and 3-axis group rotation.
+
+## V0.0.15 Alpha Dev
+
+Added connector lines between the player and followers, forming a visible tetrahedral body.
+
+## V0.0.16 Alpha Dev
+
+Tightened collision from one large group hitbox to individual node hitboxes.  
+Moved tetrahedron rotation into a dedicated function.  
+Prevented the rotating body from clipping through walls.

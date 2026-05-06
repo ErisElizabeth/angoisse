@@ -83,6 +83,9 @@ playerGroup.add(followerOne);
 playerGroup.add(followerTwo);
 playerGroup.add(followerThree);
 
+// Store the player and followers in an array for easy access later
+const playerNodes = [player, followerOne, followerTwo, followerThree];
+
 // Position the player and followers at the vertices of a tetrahedron
 player.position.set(1, 1, 1);
 followerOne.position.set(1, -1, -1);
@@ -93,6 +96,37 @@ player.position.normalize().multiplyScalar(tetraRadius);
 followerOne.position.normalize().multiplyScalar(tetraRadius);
 followerTwo.position.normalize().multiplyScalar(tetraRadius);
 followerThree.position.normalize().multiplyScalar(tetraRadius);
+
+// ======================================================
+// PLAYER CONNECTOR LINES
+// ======================================================
+
+const connectorMaterial = new THREE.LineBasicMaterial({
+	color: 0xf6e3fa,
+	transparent: true,
+	opacity: 0.45,
+});
+
+function createConnector(startNode, endNode) {
+	const points = [startNode.position.clone(), endNode.position.clone()];
+
+	const geometry = new THREE.BufferGeometry().setFromPoints(points);
+	const line = new THREE.Line(geometry, connectorMaterial);
+
+	playerGroup.add(line);
+
+	return line;
+}
+// Connect the player to each follower
+createConnector(player, followerOne);
+createConnector(player, followerTwo);
+createConnector(player, followerThree);
+
+createConnector(followerOne, followerTwo);
+createConnector(followerTwo, followerThree);
+createConnector(followerThree, followerOne);
+
+// Define the boundaries of the room
 
 const bounds = {
 	minX: -10,
@@ -112,11 +146,18 @@ southWall.position.set(0, 0.5, 10);
 scene.add(southWall);
 //add hit box to north wall
 const northWallBox = new THREE.Box3().setFromObject(northWall);
-
+//
 function isTouchingNorthWall() {
-	const playerBox = new THREE.Box3().setFromObject(playerGroup);
+	playerGroup.updateMatrixWorld(true);
 
-	return playerBox.intersectsBox(northWallBox);
+	return playerNodes.some((node) => {
+		const nodeWorldPosition = new THREE.Vector3();
+		node.getWorldPosition(nodeWorldPosition);
+
+		const nodeSphere = new THREE.Sphere(nodeWorldPosition, playerDim);
+
+		return northWallBox.intersectsSphere(nodeSphere);
+	});
 }
 
 const eastWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 22), wallMaterial);
@@ -229,6 +270,8 @@ function animate() {
 
 	applyJumpAndGravity();
 	clampPlayerToBounds();
+
+	rotatePlayerGroup();
 	camera.lookAt(playerGroup.position);
 	player.rotation.x += 0.01;
 	player.rotation.y += 0.01;
@@ -246,9 +289,17 @@ function animate() {
 	followerThree.rotation.y += 0.01;
 	followerThree.rotation.z += 0.01;
 
-	playerGroup.rotation.x += 0.01;
-	playerGroup.rotation.y += 0.01;
-	playerGroup.rotation.z += 0.01;
+	function rotatePlayerGroup() {
+		const oldRotation = playerGroup.rotation.clone();
+
+		playerGroup.rotation.x += 0.01;
+		playerGroup.rotation.y += 0.01;
+		playerGroup.rotation.z += 0.01;
+
+		if (isTouchingNorthWall()) {
+			playerGroup.rotation.copy(oldRotation);
+		}
+	}
 
 	renderer.render(scene, camera);
 }
