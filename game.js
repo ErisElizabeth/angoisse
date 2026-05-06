@@ -245,22 +245,23 @@ function movePlayer() {
 	if (keys['s'] || keys['arrowdown']) playerGroup.position.z += speed;
 	if (keys['a'] || keys['arrowleft']) playerGroup.position.x -= speed;
 	if (keys['d'] || keys['arrowright']) playerGroup.position.x += speed;
-
+	if (keys['z']) playerGroup.position.y += speed;
+	if (keys['shift']) playerGroup.position.y -= speed;
 	if (isTouchingNorthWall()) {
 		playerGroup.position.copy(oldPosition);
 	}
 }
+// old jump and gravity function, may be useful for later if I want to add more complex platforming elements, but for now I'm just using it to let the player jump in place
+//function applyJumpAndGravity() {
+//	playerGroup.position.y += velocityY;
+//	velocityY -= gravity;
 
-function applyJumpAndGravity() {
-	playerGroup.position.y += velocityY;
-	velocityY -= gravity;
-
-	if (playerGroup.position.y <= floorY) {
-		playerGroup.position.y = floorY;
-		velocityY = 0;
-		isOnGround = true;
-	}
-}
+//	if (playerGroup.position.y <= floorY) {
+//		playerGroup.position.y = floorY;
+//		velocityY = 0;
+isOnGround = true;
+//	}
+//}
 
 function animate() {
 	requestAnimationFrame(animate);
@@ -268,8 +269,8 @@ function animate() {
 	movePlayer();
 	moveCamera();
 
-	applyJumpAndGravity();
-	clampPlayerToBounds();
+	//	applyJumpAndGravity();
+	//	clampPlayerToBounds();
 
 	rotatePlayerGroup();
 	camera.lookAt(playerGroup.position);
