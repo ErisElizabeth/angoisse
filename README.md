@@ -44,3 +44,11 @@ built another traversable room
 
 
 
+V0.0.8 Alpha Dev
+
+
+
+created collision between player and north wall, must be jumped over. This now qualifies as a "game"
+
+
+

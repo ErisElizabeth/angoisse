@@ -18,24 +18,28 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // This is your temporary player.
-const playerGeometry = new THREE.BoxGeometry(1, 1, 1);
-const playerMaterial = new THREE.MeshStandardMaterial({ color: 0x618071 });
+const playerDim = .5
+const playerGeometry = new THREE.BoxGeometry(playerDim, playerDim, playerDim);
+const playerMaterial = new THREE.MeshPhongMaterial({ color: 0x618071 });
 const player = new THREE.Mesh(playerGeometry, playerMaterial);
-const cubeSize = 1;
+const cubeSize = playerDim;
 const playerRadius = cubeSize * Math.sqrt(3) / 2;
+
+const playerBox = new THREE.Box3().setFromObject(player);
+
+
 player.position.set(0, playerRadius, 0);
 scene.add(player);
 
 const bounds = {
   minX: -10,
   maxX: 10,
-  minZ: -20,
+  minZ: -30,
   maxZ: 10
 };
 //here start building walls
 
 const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x0c55f2 });
-
 const northWall = new THREE.Mesh(
   new THREE.BoxGeometry(22, 1, 0.5),
   wallMaterial
@@ -49,6 +53,14 @@ const southWall = new THREE.Mesh(
 );
 southWall.position.set(0, 0.5, 10);
 scene.add(southWall);
+//add hit box to north wall
+const northWallBox = new THREE.Box3().setFromObject(northWall);
+
+function isTouchingNorthWall() {
+  const playerBox = new THREE.Box3().setFromObject(player);
+
+  return playerBox.intersectsBox(northWallBox);
+}
 
 const eastWall = new THREE.Mesh(
   new THREE.BoxGeometry(0.5, 1, 22),
@@ -152,10 +164,18 @@ window.addEventListener("keyup", (event) => {
 function movePlayer() {
   const speed = 0.08;
 
+  const oldX = player.position.x;
+  const oldZ = player.position.z;
+
   if (keys["w"] || keys["arrowup"]) player.position.z -= speed;
   if (keys["s"] || keys["arrowdown"]) player.position.z += speed;
   if (keys["a"] || keys["arrowleft"]) player.position.x -= speed;
   if (keys["d"] || keys["arrowright"]) player.position.x += speed;
+
+  if (isTouchingNorthWall()) {
+    player.position.x = oldX;
+    player.position.z = oldZ;
+  }
 }
 
 function applyJumpAndGravity() {
