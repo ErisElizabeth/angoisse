@@ -44,13 +44,34 @@ scene.add(light);
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
 
+
+const keys = {};
+
+window.addEventListener("keydown", (event) => {
+  keys[event.key.toLowerCase()] = true;
+});
+
+window.addEventListener("keyup", (event) => {
+  keys[event.key.toLowerCase()] = false;
+});
+
+function movePlayer() {
+  const speed = 0.08;
+
+  if (keys["w"] || keys["arrowup"]) player.position.z -= speed;
+  if (keys["s"] || keys["arrowdown"]) player.position.z += speed;
+  if (keys["a"] || keys["arrowleft"]) player.position.x -= speed;
+  if (keys["d"] || keys["arrowright"]) player.position.x += speed;
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
+  movePlayer();
+  clampPlayerToBounds();
+
   player.rotation.x += 0.01;
   player.rotation.y += 0.01;
-
-  clampPlayerToBounds();
 
   renderer.render(scene, camera);
 }
