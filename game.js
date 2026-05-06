@@ -94,8 +94,21 @@ scene.add(ambientLight);
 
 const keys = {};
 
+// Jump / gravity variables
+let velocityY = 0;
+let isOnGround = true;
+
+const gravity = 0.018;
+const jumpStrength = 0.35;
+const floorY = playerRadius;
+
 window.addEventListener("keydown", (event) => {
   keys[event.key.toLowerCase()] = true;
+
+  if (event.code === "Space" && isOnGround) {
+    velocityY = jumpStrength;
+    isOnGround = false;
+  }
 });
 
 window.addEventListener("keyup", (event) => {
@@ -111,10 +124,22 @@ function movePlayer() {
   if (keys["d"] || keys["arrowright"]) player.position.x += speed;
 }
 
+function applyJumpAndGravity() {
+  player.position.y += velocityY;
+  velocityY -= gravity;
+
+  if (player.position.y <= floorY) {
+    player.position.y = floorY;
+    velocityY = 0;
+    isOnGround = true;
+  }
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
   movePlayer();
+  applyJumpAndGravity();
   clampPlayerToBounds();
 
   player.rotation.x += 0.01;
