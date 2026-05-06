@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x202020);
+scene.background = new THREE.Color(0xba5252);
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -19,7 +19,7 @@ document.body.appendChild(renderer.domElement);
 
 // This is your temporary player.
 const playerGeometry = new THREE.BoxGeometry(1, 1, 1);
-const playerMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff88 });
+const playerMaterial = new THREE.MeshStandardMaterial({ color: 0x618071 });
 const player = new THREE.Mesh(playerGeometry, playerMaterial);
 const cubeSize = 1;
 const playerRadius = cubeSize * Math.sqrt(3) / 2;
@@ -29,12 +29,12 @@ scene.add(player);
 const bounds = {
   minX: -10,
   maxX: 10,
-  minZ: -10,
+  minZ: -20,
   maxZ: 10
 };
 //here start building walls
 
-const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x0c55f2 });
 
 const northWall = new THREE.Mesh(
   new THREE.BoxGeometry(22, 1, 0.5),
@@ -63,14 +63,48 @@ const westWall = new THREE.Mesh(
 );
 westWall.position.set(-10, 0.5, 0);
 scene.add(westWall);
+//build new room (b)
+
+const bwallMaterial = new THREE.MeshStandardMaterial({ color: 0xa5bae8 });
+
+
+const bnorthWall = new THREE.Mesh(
+  new THREE.BoxGeometry(22, 1, 0.5),
+  bwallMaterial
+);
+bnorthWall.position.set(0, 0.5, -10.5);
+scene.add(bnorthWall);
+
+const bsouthWall = new THREE.Mesh(
+  new THREE.BoxGeometry(22, 1, 0.5),
+  bwallMaterial
+);
+bsouthWall.position.set(0, 0.5, -30);
+scene.add(bsouthWall);
+
+const beastWall = new THREE.Mesh(
+  new THREE.BoxGeometry(0.5, 1, 22),
+  bwallMaterial
+);
+beastWall.position.set(10, 0.5, -20);
+scene.add(beastWall);
+
+const bwestWall = new THREE.Mesh(
+  new THREE.BoxGeometry(0.5, 1, 22),
+  bwallMaterial
+);
+bwestWall.position.set(-10, 0.5, -20);
+scene.add(bwestWall);
+
+
 
 //end here building walls
 //add a floor
 const floor = new THREE.Mesh(
-  new THREE.BoxGeometry(20, 0.1, 20),
+  new THREE.BoxGeometry(20, 0.1, 40),
   new THREE.MeshStandardMaterial({ color: 0x222222 })
 );
-floor.position.set(0, -0.05, 0);
+floor.position.set(0, -0.05, -10);
 scene.add(floor);
 //bounding playeraaaaaaaaaaswwa
 function clampPlayerToBounds() {

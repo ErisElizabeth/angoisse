@@ -36,3 +36,11 @@ in addition to moving with a,s,d,w, the cube now jumps with the space bar
 
 
 
+V0.0.7 Alpha Dev
+
+
+
+built another traversable room
+
+
+
