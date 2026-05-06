@@ -10,7 +10,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(0, 2, 5);
+camera.position.set(0, 4, 5);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -33,7 +33,7 @@ scene.add(player);
 
 const bounds = {
   minX: -10,
-  maxX: 10,
+  maxX: 30,
   minZ: -30,
   maxZ: 10
 };
