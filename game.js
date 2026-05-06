@@ -31,7 +31,7 @@ const bounds = {
   minZ: -10,
   maxZ: 10
 };
-//here
+//here start building walls
 
 const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
 
@@ -63,7 +63,14 @@ const westWall = new THREE.Mesh(
 westWall.position.set(-10, 0.5, 0);
 scene.add(westWall);
 
-//end here
+//end here building walls
+//add a floor
+const floor = new THREE.Mesh(
+  new THREE.BoxGeometry(20, 0.1, 20),
+  new THREE.MeshStandardMaterial({ color: 0x222222 })
+);
+floor.position.set(0, -0.05, 0);
+scene.add(floor);
 function clampPlayerToBounds() {
   player.position.x = Math.max(bounds.minX, Math.min(bounds.maxX, player.position.x));
   player.position.z = Math.max(bounds.minZ, Math.min(bounds.maxZ, player.position.z));

@@ -13,3 +13,7 @@ V0.0.3 Alpha Dev
 
 bounderies established and visible
 
+V0.0.4 Alpha Dev
+
+added a floor
+
