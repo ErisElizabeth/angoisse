@@ -18,17 +18,35 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // This is your temporary player.
-const playerDim = .5
-const playerGeometry = new THREE.BoxGeometry(playerDim, playerDim, playerDim);
-const playerMaterial = new THREE.MeshPhongMaterial({ color: 0x618071 });
+const playerDim = .25
+const playerGeometry = new THREE.IcosahedronGeometry(playerDim, 0);
+const playerMaterial = new THREE.MeshPhongMaterial({ 
+    color: 0xb847d1, 
+    emissive: 0x764a80, // The color of the "glow"
+    emissiveIntensity: 0.5 // How strong it is
+});
 const player = new THREE.Mesh(playerGeometry, playerMaterial);
-const cubeSize = playerDim;
-const playerRadius = cubeSize * Math.sqrt(3) / 2;
+//unneeded after a  rev
+//const cubeSize = playerDim;
+//const playerRadius = cubeSize * Math.sqrt(3) / 2;
+
+//  Create a larger "halo" version of the same geometry
+const haloGeometry = new THREE.IcosahedronGeometry(playerDim * 1.1, 0); 
+const haloMaterial = new THREE.MeshBasicMaterial({
+    color: 0xf6e3fa,
+    transparent: true,
+    opacity: 0.3,
+    blending: THREE.AdditiveBlending, // Makes it look like light
+    side: THREE.BackSide // Renders on the inside to avoid covering the player
+});
+//
+const halo = new THREE.Mesh(haloGeometry, haloMaterial);
+player.add(halo); // Attach it directly to the player
 
 const playerBox = new THREE.Box3().setFromObject(player);
 
 
-player.position.set(0, playerRadius, 0);
+player.position.set(0, playerDim, 0);
 scene.add(player);
 
 const bounds = {
@@ -121,13 +139,13 @@ scene.add(floor);
 //bounding playeraaaaaaaaaaswwa
 function clampPlayerToBounds() {
   player.position.x = Math.max(
-    bounds.minX + playerRadius,
-    Math.min(bounds.maxX - playerRadius, player.position.x)
+    bounds.minX + playerDim,
+    Math.min(bounds.maxX - playerDim, player.position.x)
   );
 
   player.position.z = Math.max(
-    bounds.minZ + playerRadius,
-    Math.min(bounds.maxZ - playerRadius, player.position.z)
+    bounds.minZ + playerDim,
+    Math.min(bounds.maxZ - playerDim, player.position.z)
   );
 }
 const light = new THREE.DirectionalLight(0xffffff, 2);
@@ -146,7 +164,7 @@ let isOnGround = true;
 
 const gravity = 0.018;
 const jumpStrength = 0.35;
-const floorY = playerRadius;
+const floorY = playerDim;
 
 window.addEventListener("keydown", (event) => {
   keys[event.key.toLowerCase()] = true;
