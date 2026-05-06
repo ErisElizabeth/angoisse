@@ -23,7 +23,10 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// This is your temporary player.
+const playerGroup = new THREE.Group();
+scene.add(playerGroup);
+
+// This is your main player.
 const playerDim = 0.25;
 const playerGeometry = new THREE.IcosahedronGeometry(playerDim, 0);
 const playerMaterial = new THREE.MeshPhongMaterial({
@@ -51,7 +54,6 @@ function addHaloTo(object) {
 const playerBox = new THREE.Box3().setFromObject(player);
 
 player.position.set(0, playerDim, 0);
-scene.add(player);
 addHaloTo(player);
 
 const legLength = 4;
@@ -63,18 +65,20 @@ const legPositionY = playerDim + tetraHeight;
 const followerOne = new THREE.Mesh(playerGeometry, playerMaterial);
 
 followerOne.position.set(baseOnePoint, legPositionY, 0);
-scene.add(followerOne);
 addHaloTo(followerOne);
 const followerTwo = new THREE.Mesh(playerGeometry, playerMaterial);
 
 followerTwo.position.set(-baseTwoPoint, legPositionY, -baseThreePoint);
-scene.add(followerTwo);
 addHaloTo(followerTwo);
 const followerThree = new THREE.Mesh(playerGeometry, playerMaterial);
 
 followerThree.position.set(-baseTwoPoint, legPositionY, baseThreePoint);
-scene.add(followerThree);
 addHaloTo(followerThree);
+
+playerGroup.add(player);
+playerGroup.add(followerOne);
+playerGroup.add(followerTwo);
+playerGroup.add(followerThree);
 const bounds = {
 	minX: -10,
 	maxX: 30,
@@ -95,7 +99,7 @@ scene.add(southWall);
 const northWallBox = new THREE.Box3().setFromObject(northWall);
 
 function isTouchingNorthWall() {
-	const playerBox = new THREE.Box3().setFromObject(player);
+	const playerBox = new THREE.Box3().setFromObject(playerGroup);
 
 	return playerBox.intersectsBox(northWallBox);
 }
@@ -134,9 +138,15 @@ floor.position.set(0, -0.05, -10);
 scene.add(floor);
 //bounding playeraaaaaaaaaaswwa
 function clampPlayerToBounds() {
-	player.position.x = Math.max(bounds.minX + playerDim, Math.min(bounds.maxX - playerDim, player.position.x));
+	playerGroup.position.x = Math.max(
+		bounds.minX + playerDim,
+		Math.min(bounds.maxX - playerDim, playerGroup.position.x)
+	);
 
-	player.position.z = Math.max(bounds.minZ + playerDim, Math.min(bounds.maxZ - playerDim, player.position.z));
+	playerGroup.position.z = Math.max(
+		bounds.minZ + playerDim,
+		Math.min(bounds.maxZ - playerDim, playerGroup.position.z)
+	);
 }
 const light = new THREE.DirectionalLight(0xffffff, 2);
 light.position.set(3, 5, 4);
@@ -171,26 +181,24 @@ window.addEventListener('keyup', (event) => {
 function movePlayer() {
 	const speed = 0.08;
 
-	const oldX = player.position.x;
-	const oldZ = player.position.z;
+	const oldPosition = playerGroup.position.clone();
 
-	if (keys['w'] || keys['arrowup']) player.position.z -= speed;
-	if (keys['s'] || keys['arrowdown']) player.position.z += speed;
-	if (keys['a'] || keys['arrowleft']) player.position.x -= speed;
-	if (keys['d'] || keys['arrowright']) player.position.x += speed;
+	if (keys['w'] || keys['arrowup']) playerGroup.position.z -= speed;
+	if (keys['s'] || keys['arrowdown']) playerGroup.position.z += speed;
+	if (keys['a'] || keys['arrowleft']) playerGroup.position.x -= speed;
+	if (keys['d'] || keys['arrowright']) playerGroup.position.x += speed;
 
 	if (isTouchingNorthWall()) {
-		player.position.x = oldX;
-		player.position.z = oldZ;
+		playerGroup.position.copy(oldPosition);
 	}
 }
 
 function applyJumpAndGravity() {
-	player.position.y += velocityY;
+	playerGroup.position.y += velocityY;
 	velocityY -= gravity;
 
-	if (player.position.y <= floorY) {
-		player.position.y = floorY;
+	if (playerGroup.position.y <= floorY) {
+		playerGroup.position.y = floorY;
 		velocityY = 0;
 		isOnGround = true;
 	}
@@ -204,7 +212,7 @@ function animate() {
 
 	applyJumpAndGravity();
 	clampPlayerToBounds();
-	camera.lookAt(player.position);
+	camera.lookAt(playerGroup.position);
 	player.rotation.x += 0.01;
 	player.rotation.y += 0.01;
 	player.rotation.z += 0.01;

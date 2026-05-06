@@ -52,3 +52,6 @@ Added camera controls
 
 \## V0.0.11 Alpha Dev
 created the tetrahedron with 3 follower[Number] and mathamaticlly placed them
+
+\## V0.0.12 Alpha Dev
+placed player and followers in playerGroup, they now all move together as a happy family
