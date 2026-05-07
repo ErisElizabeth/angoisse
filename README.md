@@ -128,3 +128,13 @@ It’s alive.
 Moved the collection node to a more challenging position at `(-5, 5, -10)`.  
 Increased the collection hitbox radius to make the node reliably collectable during movement testing.  
 Added a temporary wireframe sphere to visualize the collection hitbox for debugging purposes.
+
+## V0.0.24 Alpha Dev
+
+Converted collection nodes into a reusable array system.  
+Added a second collection node in room B.  
+Collection nodes now include wireframe debug hitboxes.  
+Touching a collection node turns collision off.  
+Manual debug controls remain active: `G` disables collision and `H` restores collision.
+
+Reality is now conditional.
