@@ -183,3 +183,18 @@ Added `endasset.mp4` as the end-screen video asset.
 Touching an enemy node now brings up the end screen and plays the ending video.
 
 I am Kala, the destroyer of worlds.
+
+## V0.0.29 Alpha Dev
+
+Added end-screen text overlay.  
+Game-over now plays the explosion video and displays a creepy message in the Eater font:
+
+“you destroyed the universe. good job.”
+
+## V0.1.0 Alpha Prototype
+
+Angoisse has crossed the first threshold.
+
+The project now includes a title screen, a playable tetrahedral body, multiple generated rooms, reusable collision systems, collectibles, enemy nodes, debug controls, a game-over sequence, and a deployed build.
+
+The little universe has rules, hazards, rewards, and consequences.

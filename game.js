@@ -233,9 +233,23 @@ scene.add(roomA.group);
 const roomB = createRoom(roomSize, roomTransparency);
 roomB.group.position.set(0, 0, -70);
 scene.add(roomB.group);
+// Start building new rooms here as needed, using the createRoom helper and positioning them as desired.
+
+const roomC = createRoom(roomSize, roomTransparency);
+roomC.group.position.set(70, 0, -70);
+scene.add(roomC.group);
+
+const roomD = createRoom(roomSize, roomTransparency);
+roomD.group.position.set(70, 0, -140);
+scene.add(roomD.group);
 
 // Collect all room colliders into one master list
-const roomColliders = [...roomA.colliders, ...roomB.colliders];
+const roomColliders = [
+  ...roomA.colliders,
+  ...roomB.colliders,
+  ...roomC.colliders,
+  ...roomD.colliders,
+];
 
 function isTouchingRoomCollider() {
   playerGroup.updateMatrixWorld(true);
