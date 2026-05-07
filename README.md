@@ -150,3 +150,27 @@ Added a restore-collision plane in room B that turns collision back on when cros
 Moved the restore plane farther into the room to prevent the rotating tetrahedral body from getting trapped as its trailing node crosses the boundary.
 
 Behold me.
+
+## Field Note
+
+Project deployed successfully.  
+Development is roughly ten hours ahead of schedule for today.  
+The developer left the machine, walked to the park, sat in the sun, and returned with proof of life.
+
+A literal dev hat has been ordered: black bucket hat, white embroidered alien face.
+
+The ritual vestments arrive tomorrow.
+
+## V0.0.26 Alpha Dev
+
+Added camera reset control.  
+Pressing `B` returns the camera offset to its default follow position behind the player.  
+Cleaned up duplicate key listener after confirming the mechanic worked.
+
+## V0.0.27 Alpha Dev
+
+Added title card using `titleasset.jpg`.  
+Added start button to enter the game from the title screen.  
+Fixed first collection node cleanup behavior.
+
+No further comment.

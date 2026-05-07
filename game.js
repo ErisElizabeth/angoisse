@@ -167,36 +167,7 @@ const haloGeometry = new THREE.IcosahedronGeometry(playerDim * 1.3, 0);
 //=======================================================
 //5.1 collection node
 //=======================================================
-// =======================================================
-// 5.1 COLLECTION NODE
-// =======================================================
-
-const collectionNode = new THREE.Mesh(
-  collectionNodeGeometry,
-  collectionNodeMaterial,
-);
-
-collectionNode.position.set(-5, 5, -10);
-collectionNode.userData.collected = false;
-collectionNode.userData.hitRadius = collectionNodeHitRadius;
-collectionNode.userData.fadeSpeed = 0.03;
-
-scene.add(collectionNode);
-
-const collectionDebugSphere = new THREE.Mesh(
-  new THREE.SphereGeometry(collectionNodeHitRadius, 16, 16),
-  new THREE.MeshBasicMaterial({
-    color: 0xffff00,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.35,
-  }),
-);
-
-collectionDebugSphere.position.copy(collectionNode.position);
-scene.add(collectionDebugSphere);
-
-// ======================================================
+//==============================================
 // 6. PLAYER / TETRAHEDRON BODY
 // ======================================================
 
@@ -831,6 +802,9 @@ function moveCamera() {
 
   if (keys["u"]) cameraOffset.z -= cameraMoveSpeed;
   if (keys["o"]) cameraOffset.z += cameraMoveSpeed;
+  if (keys["b"]) {
+    cameraOffset.copy(cameraStartPosition);
+  }
 }
 
 function snapCamera() {
@@ -925,7 +899,24 @@ function isTouchingNorthWall() {
   });
 }
 */
+//=======================================================
+// 16.1 TITLE CARD
+//=======================================================
+// ======================================================
+// TITLE SCREEN
+// ======================================================
 
+let gameStarted = false;
+
+const titleScreen = document.getElementById("title-screen");
+const startButton = document.getElementById("start-button");
+
+startButton.addEventListener("click", () => {
+  console.log("Start button clicked");
+
+  titleScreen.classList.add("hidden");
+  gameStarted = true;
+});
 // ======================================================
 // 17. ANIMATION LOOP
 // ======================================================
@@ -936,9 +927,9 @@ function animate() {
   movePlayer();
   moveCamera();
   snapCamera();
+  checkRestorePlaneCollision();
   checkCollectionNodeCollisions();
   updateCollectionNodes();
-  checkRestorePlaneCollision();
 
   // TEMP TEST:
   // Bounds are currently disabled while exploring room placement.
@@ -947,9 +938,9 @@ function animate() {
 
   rotatePlayerGroup();
   rotatePlayerNodes();
-  collectionNode.rotation.x += 0.02;
-  collectionNode.rotation.y += 0.03;
-  collectionNode.rotation.z += 0.01;
+  //collectionNode.rotation.x += 0.02;
+  ///collectionNode.rotation.y += 0.03;
+  //collectionNode.rotation.z += 0.01;
   camera.lookAt(playerGroup.position);
 
   renderer.render(scene, camera);
