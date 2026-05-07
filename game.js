@@ -111,7 +111,7 @@ const bounds = {
 // ======================================================
 // 4. MATERIALS
 // ======================================================
-
+// start collection node settings
 const collectionNodeRadius = 0.45;
 const collectionNodeHitRadius = 2.5;
 const showCollectionDebugHitboxes = true;
@@ -143,6 +143,38 @@ const playerMaterial = new THREE.MeshPhongMaterial({
   emissive: playerGlowColor,
   emissiveIntensity: 0.5,
 });
+//end collection node settings
+
+//start enemy node settings
+const enemyNodeRadius = 0.45;
+const enemyNodeHitRadius = 2.5;
+const showEnemyDebugHitboxes = true;
+const enemyNodeGeometry = new THREE.TorusKnotGeometry(
+  enemyNodeRadius,
+  0.12,
+  80,
+  12,
+);
+
+const enemyNodeMaterial = new THREE.MeshPhongMaterial({
+  color: 0xff0000,
+  emissive: 0xff8800,
+  emissiveIntensity: 0.7,
+  transparent: true,
+  opacity: 1,
+});
+
+// Debugging tool for enemy node hitbox.
+const enemyHitboxMaterial = new THREE.MeshBasicMaterial({
+  color: 0xff0000,
+  wireframe: true,
+  transparent: true,
+  opacity: 0.35,
+});
+
+const enemyNodes = [];
+
+// end enemy node settings
 
 const haloMaterial = new THREE.MeshBasicMaterial({
   color: haloColor,
@@ -357,7 +389,7 @@ function createPlayerConnectors() {
   createConnector(followerThree, followerOne);
 }
 //=======================================================
-// 11.5 COLLECTION NODE HELPERS
+// 11.1 COLLECTION NODE HELPERS
 //=======================================================
 
 function createCollectionNode(position) {
@@ -424,7 +456,7 @@ function checkCollectionNodeCollisions() {
     }
   });
 }
-
+//start collect node array
 function updateCollectionNodes() {
   for (let i = collectionNodes.length - 1; i >= 0; i--) {
     const collectionNode = collectionNodes[i];
@@ -467,6 +499,86 @@ function updateCollectionNodes() {
 // Example collection nodes
 createCollectionNode(new THREE.Vector3(-5, 5, -10)); // room A
 createCollectionNode(new THREE.Vector3(8, 5, -75)); // room B
+
+//=======================================================
+// 11.5 ENEMY NODE HELPERS
+//=======================================================
+
+function createEnemyNode(position) {
+  const node = new THREE.Mesh(enemyNodeGeometry, enemyNodeMaterial.clone());
+
+  node.position.copy(position);
+  node.userData.hitRadius = enemyNodeHitRadius;
+
+  let enemyDebugHitbox = null;
+
+  if (showEnemyDebugHitboxes) {
+    enemyDebugHitbox = new THREE.Mesh(
+      new THREE.SphereGeometry(enemyNodeHitRadius, 24, 24),
+      enemyHitboxMaterial.clone(),
+    );
+
+    enemyDebugHitbox.position.copy(position);
+    scene.add(enemyDebugHitbox);
+  }
+
+  node.userData.debugHitbox = enemyDebugHitbox;
+
+  scene.add(node);
+  enemyNodes.push(node);
+
+  return node;
+}
+
+function checkEnemyNodeCollisions() {
+  if (gameOver) return;
+
+  playerGroup.updateMatrixWorld(true);
+
+  enemyNodes.forEach((enemyNode) => {
+    const enemySphere = new THREE.Sphere(
+      enemyNode.position,
+      enemyNode.userData.hitRadius,
+    );
+
+    const touched = playerNodes.some((playerNode) => {
+      const playerNodeWorldPosition = new THREE.Vector3();
+      playerNode.getWorldPosition(playerNodeWorldPosition);
+
+      const playerNodeSphere = new THREE.Sphere(
+        playerNodeWorldPosition,
+        playerDim,
+      );
+
+      return enemySphere.intersectsSphere(playerNodeSphere);
+    });
+
+    if (touched) {
+      triggerEndScreen();
+    }
+  });
+}
+
+function updateEnemyNodes() {
+  enemyNodes.forEach((enemyNode) => {
+    enemyNode.rotation.x += 0.02;
+    enemyNode.rotation.y += 0.03;
+    enemyNode.rotation.z += 0.01;
+
+    const debugHitbox = enemyNode.userData.debugHitbox;
+
+    if (debugHitbox) {
+      debugHitbox.position.copy(enemyNode.position);
+    }
+  });
+}
+
+// Example enemy nodes
+createEnemyNode(new THREE.Vector3(5, 5, -10)); // room A
+createEnemyNode(new THREE.Vector3(-8, 5, -75)); // room B
+
+//=======================================================
+
 // ======================================================
 // 12. ROOM HELPERS
 // ======================================================
@@ -855,50 +967,6 @@ function rotatePlayerNodes() {
   });
 }
 
-// ======================================================
-// 16. OLD COLLISION / PHYSICS SCRAP
-// ======================================================
-
-// Jump / gravity variables are disabled for now.
-// They may be useful later if platforming returns.
-/*
-let velocityY = 0;
-let isOnGround = true;
-
-const gravity = 0.018;
-const jumpStrength = 0.25;
-const floorY = playerDim;
-
-function applyJumpAndGravity() {
-  playerGroup.position.y += velocityY;
-  velocityY -= gravity;
-
-  if (playerGroup.position.y <= floorY) {
-    playerGroup.position.y = floorY;
-    velocityY = 0;
-    isOnGround = true;
-  }
-}
-*/
-
-// Wall collision is disabled for now.
-// Node-based sphere hitboxes can be revived later.
-/*
-const northWallBox = new THREE.Box3().setFromObject(northWall);
-
-function isTouchingNorthWall() {
-  playerGroup.updateMatrixWorld(true);
-
-  return playerNodes.some((node) => {
-    const nodeWorldPosition = new THREE.Vector3();
-    node.getWorldPosition(nodeWorldPosition);
-
-    const nodeSphere = new THREE.Sphere(nodeWorldPosition, playerDim);
-
-    return northWallBox.intersectsSphere(nodeSphere);
-  });
-}
-*/
 //=======================================================
 // 16.1 TITLE CARD
 //=======================================================
@@ -907,30 +975,60 @@ function isTouchingNorthWall() {
 // ======================================================
 
 let gameStarted = false;
+let gameOver = false;
 
 const titleScreen = document.getElementById("title-screen");
 const startButton = document.getElementById("start-button");
 
-startButton.addEventListener("click", () => {
-  console.log("Start button clicked");
+const endScreen = document.getElementById("end-screen");
+const endVideo = document.getElementById("end-video");
 
+startButton.addEventListener("click", () => {
   titleScreen.classList.add("hidden");
   gameStarted = true;
 });
+//======================================================
+// END SCREEN
+// ======================================================
+function triggerEndScreen() {
+  if (gameOver) return;
+
+  gameOver = true;
+
+  endScreen.classList.add("active");
+
+  endVideo.currentTime = 0;
+
+  endVideo.play().catch((error) => {
+    console.log("End video could not autoplay:", error);
+  });
+}
+// ======================================================
+// 17. ANIMATION LOOP
+// ======================================================
+
+//  titleScreen.classList.add("hidden");
+//  gameStarted = true;
+//})end
+
 // ======================================================
 // 17. ANIMATION LOOP
 // ======================================================
 
 function animate() {
   requestAnimationFrame(animate);
-
+  if (!gameStarted) {
+    renderer.render(scene, camera);
+    return;
+  }
   movePlayer();
   moveCamera();
   snapCamera();
   checkRestorePlaneCollision();
   checkCollectionNodeCollisions();
   updateCollectionNodes();
-
+  checkEnemyNodeCollisions();
+  updateEnemyNodes();
   // TEMP TEST:
   // Bounds are currently disabled while exploring room placement.
   // Re-enable when you want the player locked to the current bounds.

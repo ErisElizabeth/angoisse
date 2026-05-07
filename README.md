@@ -174,3 +174,12 @@ Added start button to enter the game from the title screen.
 Fixed first collection node cleanup behavior.
 
 No further comment.
+
+## V0.0.28 Alpha Dev
+
+Added enemy nodes.  
+Enemy nodes now use hitbox collision to trigger the game-over state.  
+Added `endasset.mp4` as the end-screen video asset.  
+Touching an enemy node now brings up the end screen and plays the ending video.
+
+I am Kala, the destroyer of worlds.
