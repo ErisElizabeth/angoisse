@@ -13,6 +13,45 @@ camera.lookAt(0, 0, 0);
 const cameraMoveSpeed = 0.12;
 const tetraRadius = 2;
 const cameraOffset = new THREE.Vector3(0, 4, 5);
+function createTextLabel(mainText, subText, position) {
+	const canvas = document.createElement('canvas');
+	canvas.width = 1024;
+	canvas.height = 512;
+
+	const context = canvas.getContext('2d');
+
+	// Transparent background
+	context.clearRect(0, 0, canvas.width, canvas.height);
+
+	// Main text
+	context.font = 'bold 160px Arial';
+	context.fillStyle = 'white';
+	context.textAlign = 'center';
+	context.textBaseline = 'middle';
+	context.fillText(mainText, canvas.width / 2, canvas.height / 2 - 60);
+
+	// Smaller subtitle
+	context.font = 'bold 70px Arial';
+	context.fillStyle = 'white';
+	context.fillText(subText, canvas.width / 2, canvas.height / 2 + 90);
+
+	const texture = new THREE.CanvasTexture(canvas);
+
+	const material = new THREE.SpriteMaterial({
+		map: texture,
+		transparent: true,
+		depthTest: false,
+	});
+
+	const sprite = new THREE.Sprite(material);
+	sprite.position.set(position.x, position.y, position.z);
+	sprite.scale.set(8, 4, 1);
+
+	scene.add(sprite);
+
+	return sprite;
+}
+
 function moveCamera() {
 	if (keys['j']) cameraOffset.x -= cameraMoveSpeed;
 	if (keys['l']) cameraOffset.x += cameraMoveSpeed;
@@ -133,85 +172,117 @@ createConnector(followerTwo, followerThree);
 createConnector(followerThree, followerOne);
 
 // Define the boundaries of the room
+const roomSize = 50;
+const wallThickness = 0.1;
 
 const bounds = {
-	minX: -50,
-	maxX: 50,
-	minZ: -50,
-	maxZ: 50,
+	minX: -roomSize / 2,
+	maxX: roomSize / 2,
+	minZ: -roomSize / 2,
+	maxZ: roomSize / 2,
+	minY: -roomSize / 2,
+	maxY: roomSize / 2,
 };
-//here start building walls
 
-const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x0c55f2 });
-const northWall = new THREE.Mesh(new THREE.BoxGeometry(22, 1, 0.5), wallMaterial);
-northWall.position.set(0, 0.5, -10);
-scene.add(northWall);
+// =======================================================
+// ROOM CONSTRUCTION
+// =======================================================
 
-const southWall = new THREE.Mesh(new THREE.BoxGeometry(22, 1, 0.5), wallMaterial);
-southWall.position.set(0, 0.5, 10);
-scene.add(southWall);
-//add hit box to north wall
-const northWallBox = new THREE.Box3().setFromObject(northWall);
+const roomTransparency = 0.4;
+
+const wallMaterialNorth = new THREE.MeshStandardMaterial({ color: 0x5d608c });
+const wallMaterialSouth = new THREE.MeshStandardMaterial({ color: 0x131a13 });
+const wallMaterialEast = new THREE.MeshStandardMaterial({ color: 0x1e856d });
+const wallMaterialWest = new THREE.MeshStandardMaterial({ color: 0x3e0b4d });
+const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xb89898 });
+const ceilingMaterial = new THREE.MeshStandardMaterial({ color: 0x591a1a });
+
+const northWall = new THREE.Mesh(new THREE.BoxGeometry(roomSize, roomSize, wallThickness), wallMaterialNorth);
+
+const southWall = new THREE.Mesh(new THREE.BoxGeometry(roomSize, roomSize, wallThickness), wallMaterialSouth);
+
+const eastWall = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, roomSize, roomSize), wallMaterialEast);
+
+const westWall = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, roomSize, roomSize), wallMaterialWest);
+
+const floor = new THREE.Mesh(new THREE.BoxGeometry(roomSize, wallThickness, roomSize), floorMaterial);
+
+const ceiling = new THREE.Mesh(new THREE.BoxGeometry(roomSize, wallThickness, roomSize), ceilingMaterial);
+
+northWall.position.set(0, 0, -roomSize / 2);
+southWall.position.set(0, 0, roomSize / 2);
+eastWall.position.set(roomSize / 2, 0, 0);
+westWall.position.set(-roomSize / 2, 0, 0);
+floor.position.set(0, -roomSize / 2, 0);
+ceiling.position.set(0, roomSize / 2, 0);
+
+const roomParts = [northWall, southWall, eastWall, westWall, floor, ceiling];
+
+roomParts.forEach((part) => {
+	part.material.opacity = roomTransparency;
+	part.material.transparent = true;
+	scene.add(part);
+});
+// =======================================================
+// add room label sprites
 //
-function isTouchingNorthWall() {
-	playerGroup.updateMatrixWorld(true);
 
-	return playerNodes.some((node) => {
-		const nodeWorldPosition = new THREE.Vector3();
-		node.getWorldPosition(nodeWorldPosition);
+createTextLabel('Y+', 'ceiling', {
+	x: 0,
+	y: roomSize / 2 - 1,
+	z: 0,
+});
 
-		const nodeSphere = new THREE.Sphere(nodeWorldPosition, playerDim);
+createTextLabel('Y-', 'floor', {
+	x: 0,
+	y: -roomSize / 2 + 1,
+	z: 0,
+});
 
-		return northWallBox.intersectsSphere(nodeSphere);
-	});
-}
+createTextLabel('Z-', 'north', {
+	x: 0,
+	y: 0,
+	z: -roomSize / 2 + 1,
+});
 
-const eastWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 22), wallMaterial);
-eastWall.position.set(10, 0.5, 0);
-scene.add(eastWall);
+createTextLabel('Z+', 'south', {
+	x: 0,
+	y: 0,
+	z: roomSize / 2 - 1,
+});
 
-const westWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 22), wallMaterial);
-westWall.position.set(-10, 0.5, 0);
-scene.add(westWall);
-//build new room (b)
+createTextLabel('X+', 'east', {
+	x: roomSize / 2 - 1,
+	y: 0,
+	z: 0,
+});
 
-const bwallMaterial = new THREE.MeshStandardMaterial({ color: 0xa5bae8 });
+createTextLabel('X-', 'west', {
+	x: -roomSize / 2 + 1,
+	y: 0,
+	z: 0,
+});
 
-const bnorthWall = new THREE.Mesh(new THREE.BoxGeometry(22, 1, 0.5), bwallMaterial);
-bnorthWall.position.set(0, 0.5, -10.5);
-scene.add(bnorthWall);
-
-const bsouthWall = new THREE.Mesh(new THREE.BoxGeometry(22, 1, 0.5), bwallMaterial);
-bsouthWall.position.set(0, 0.5, -30);
-scene.add(bsouthWall);
-
-const beastWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 22), bwallMaterial);
-beastWall.position.set(10, 0.5, -20);
-scene.add(beastWall);
-
-const bwestWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 22), bwallMaterial);
-bwestWall.position.set(-10, 0.5, -20);
-scene.add(bwestWall);
-
-//end here building walls
-//add a floor
-const floor = new THREE.Mesh(new THREE.BoxGeometry(20, 0.1, 40), new THREE.MeshStandardMaterial({ color: 0x222222 }));
-floor.position.set(0, -0.05, -10);
-floor.material.opacity = 0.75;
-floor.material.transparent = true;
-scene.add(floor);
 //bounding player to the room
 function clampPlayerToBounds() {
+	const playerClearance = tetraRadius;
+
 	playerGroup.position.x = Math.max(
-		bounds.minX + playerDim,
-		Math.min(bounds.maxX - playerDim, playerGroup.position.x)
+		bounds.minX + playerClearance,
+		Math.min(bounds.maxX - playerClearance, playerGroup.position.x)
 	);
 
 	playerGroup.position.z = Math.max(
-		bounds.minZ + playerDim,
-		Math.min(bounds.maxZ - playerDim, playerGroup.position.z)
+		bounds.minZ + playerClearance,
+		Math.min(bounds.maxZ - playerClearance, playerGroup.position.z)
+	);
+
+	playerGroup.position.y = Math.max(
+		bounds.minY + playerClearance,
+		Math.min(bounds.maxY - playerClearance, playerGroup.position.y)
 	);
 }
+
 const light = new THREE.DirectionalLight(0xffffff, 2);
 light.position.set(3, 5, 4);
 scene.add(light);
@@ -223,7 +294,7 @@ const keys = {};
 
 // Jump / gravity variables unneeded for now, but may be useful later if I want to add more complex platforming elements, for now I'm just using it to let the player jump in place
 //let velocityY = 0;
-let isOnGround = true;
+//let isOnGround = true;
 
 //const gravity = 0.018;
 //const jumpStrength = 0.25;
@@ -231,12 +302,13 @@ let isOnGround = true;
 
 window.addEventListener('keydown', (event) => {
 	keys[event.key.toLowerCase()] = true;
-
-	if (event.code === 'Space' && isOnGround) {
-		velocityY = jumpStrength;
-		isOnGround = false;
-	}
 });
+//jump disabled for now, but may be useful later if I want to add more complex platforming elements, for now I'm just using it to let the player jump in place
+//	if (event.code === 'Space' && isOnGround) {
+//		velocityY = jumpStrength;
+//		isOnGround = false;
+//	}
+//});
 
 window.addEventListener('keyup', (event) => {
 	keys[event.key.toLowerCase()] = false;
@@ -245,72 +317,60 @@ window.addEventListener('keyup', (event) => {
 function movePlayer() {
 	const speed = 0.08;
 
-	const oldPosition = playerGroup.position.clone();
-
 	if (keys['w'] || keys['arrowup']) playerGroup.position.z -= speed;
 	if (keys['s'] || keys['arrowdown']) playerGroup.position.z += speed;
 	if (keys['a'] || keys['arrowleft']) playerGroup.position.x -= speed;
 	if (keys['d'] || keys['arrowright']) playerGroup.position.x += speed;
+
 	if (keys['z']) playerGroup.position.y += speed;
 	if (keys['shift']) playerGroup.position.y -= speed;
-	if (isTouchingNorthWall()) {
-		playerGroup.position.copy(oldPosition);
-	}
 }
 
-// old jump and gravity function, may be useful for later if I want to add more complex platforming elements, but for now I'm just using it to let the player jump in place
-//function applyJumpAndGravity() {
-//	playerGroup.position.y += velocityY;
-//	velocityY -= gravity;
+function rotatePlayerGroup() {
+	playerGroup.rotation.x += 0.01;
+	playerGroup.rotation.y += 0.01;
+	playerGroup.rotation.z += 0.01;
+}
 
-//	if (playerGroup.position.y <= floorY) {
-//		playerGroup.position.y = floorY;
-//		velocityY = 0;
-isOnGround = true;
-//	}
-//}
+function rotatePlayerNodes() {
+	playerNodes.forEach((node) => {
+		node.rotation.x += 0.01;
+		node.rotation.y += 0.01;
+		node.rotation.z += 0.01;
+	});
+}
 
 function animate() {
 	requestAnimationFrame(animate);
 
 	movePlayer();
-	snapCamera();
 	moveCamera();
-
-	//	applyJumpAndGravity();
-	//	clampPlayerToBounds();
+	snapCamera();
+	clampPlayerToBounds();
 
 	rotatePlayerGroup();
+	rotatePlayerNodes();
+
 	camera.lookAt(playerGroup.position);
-	player.rotation.x += 0.01;
-	player.rotation.y += 0.01;
-	player.rotation.z += 0.01;
-
-	followerOne.rotation.x += 0.01;
-	followerOne.rotation.y += 0.01;
-	followerOne.rotation.z += 0.01;
-
-	followerTwo.rotation.x += 0.01;
-	followerTwo.rotation.y += 0.01;
-	followerTwo.rotation.z += 0.01;
-
-	followerThree.rotation.x += 0.01;
-	followerThree.rotation.y += 0.01;
-	followerThree.rotation.z += 0.01;
-
-	function rotatePlayerGroup() {
-		const oldRotation = playerGroup.rotation.clone();
-
-		playerGroup.rotation.x += 0.01;
-		playerGroup.rotation.y += 0.01;
-		playerGroup.rotation.z += 0.01;
-
-		if (isTouchingNorthWall()) {
-			playerGroup.rotation.copy(oldRotation);
-		}
-	}
 
 	renderer.render(scene, camera);
 }
 
 animate();
+
+// I can recycle this box geometry for the north and south walls to create hit boxes for collision detection, but for now I'm just using it to let the player jump in place
+//add hit box to north wall
+//const northWallBox = new THREE.Box3().setFromObject(northWall);
+//
+//function isTouchingNorthWall() {
+//	playerGroup.updateMatrixWorld(true);
+//
+//	return playerNodes.some((node) => {
+//		const nodeWorldPosition = new THREE.Vector3();
+//		node.getWorldPosition(nodeWorldPosition);
+//
+//		const nodeSphere = new THREE.Sphere(nodeWorldPosition, playerDim);
+
+//		return northWallBox.intersectsSphere(nodeSphere);
+//	});
+//}
