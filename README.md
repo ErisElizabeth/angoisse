@@ -114,3 +114,11 @@ Added a tunnel connecting the two rooms.
 Added debug collision controls: `G` disables collision for ghost-mode testing, and `H` restores hard boundaries.
 
 The prisoner can now escape, but only when the operator permits it.
+
+## V0.0.22 Alpha Dev
+
+Added the first collectible node.  
+Created a glowing torus-knot collection object with spherical hit detection.  
+The collection node now detects contact with the tetrahedral player body, fades out, and removes itself from the scene when collected.
+
+It’s alive.

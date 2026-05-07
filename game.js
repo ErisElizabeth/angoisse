@@ -91,6 +91,19 @@ const bounds = {
 // 4. MATERIALS
 // ======================================================
 
+const collectionNodeRadius = 0.45;
+const collectionNodeHitRadius = 0.75;
+
+const collectionNodeGeometry = new THREE.TorusKnotGeometry(collectionNodeRadius, 0.12, 80, 12);
+
+const collectionNodeMaterial = new THREE.MeshPhongMaterial({
+	color: 0xffcc66,
+	emissive: 0xff8800,
+	emissiveIntensity: 0.7,
+	transparent: true,
+	opacity: 1,
+});
+
 const playerMaterial = new THREE.MeshPhongMaterial({
 	color: playerColor,
 	emissive: playerGlowColor,
@@ -117,7 +130,21 @@ const connectorMaterial = new THREE.LineBasicMaterial({
 
 const playerGeometry = new THREE.IcosahedronGeometry(playerDim, 0);
 const haloGeometry = new THREE.IcosahedronGeometry(playerDim * 1.3, 0);
+//=======================================================
+//5.1 collection node
+//=======================================================
+// =======================================================
+// 5.1 COLLECTION NODE
+// =======================================================
 
+const collectionNode = new THREE.Mesh(collectionNodeGeometry, collectionNodeMaterial);
+
+collectionNode.position.set(0, 0, -35);
+collectionNode.userData.collected = false;
+collectionNode.userData.hitRadius = collectionNodeHitRadius;
+collectionNode.userData.fadeSpeed = 0.03;
+
+scene.add(collectionNode);
 // ======================================================
 // 6. PLAYER / TETRAHEDRON BODY
 // ======================================================
@@ -278,6 +305,48 @@ function createPlayerConnectors() {
 	createConnector(followerOne, followerTwo);
 	createConnector(followerTwo, followerThree);
 	createConnector(followerThree, followerOne);
+}
+//=======================================================
+// 11.5 COLLECTION NODE HELPERS
+//=======================================================
+
+function isCollectionNodeTouched() {
+	if (collectionNode.userData.collected) return false;
+
+	playerGroup.updateMatrixWorld(true);
+
+	const collectionSphere = new THREE.Sphere(collectionNode.position, collectionNode.userData.hitRadius);
+
+	return playerNodes.some((playerNode) => {
+		const playerNodeWorldPosition = new THREE.Vector3();
+		playerNode.getWorldPosition(playerNodeWorldPosition);
+
+		const playerNodeSphere = new THREE.Sphere(playerNodeWorldPosition, playerDim);
+
+		return collectionSphere.intersectsSphere(playerNodeSphere);
+	});
+}
+
+function updateCollectionNode() {
+	if (!collectionNode.parent) return;
+
+	collectionNode.rotation.x += 0.02;
+	collectionNode.rotation.y += 0.03;
+	collectionNode.rotation.z += 0.01;
+
+	if (isCollectionNodeTouched()) {
+		collectionNode.userData.collected = true;
+	}
+
+	if (!collectionNode.userData.collected) return;
+
+	collectionNode.material.opacity -= collectionNode.userData.fadeSpeed;
+
+	if (collectionNode.material.opacity <= 0) {
+		scene.remove(collectionNode);
+		collectionNode.geometry.dispose();
+		collectionNode.material.dispose();
+	}
 }
 
 // ======================================================
@@ -671,6 +740,7 @@ function animate() {
 	movePlayer();
 	moveCamera();
 	snapCamera();
+	updateCollectionNode();
 
 	// TEMP TEST:
 	// Bounds are currently disabled while exploring room placement.
@@ -679,7 +749,9 @@ function animate() {
 
 	rotatePlayerGroup();
 	rotatePlayerNodes();
-
+	collectionNode.rotation.x += 0.02;
+	collectionNode.rotation.y += 0.03;
+	collectionNode.rotation.z += 0.01;
 	camera.lookAt(playerGroup.position);
 
 	renderer.render(scene, camera);
