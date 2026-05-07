@@ -96,3 +96,9 @@ This prepares camera movement to become a controllable gameplay mechanic.
 Rebuilt the playing field into a true bounded 3D chamber.  
 Added transparent walls, floor, and ceiling aligned to the room bounds.  
 Added debug labels so the coordinate system can no longer gaslight me.
+
+## V0.0.20 Alpha Dev
+
+Refactored `game.js` into a clear Macro B-style structure.  
+Separated constants, scene setup, materials, geometry, player body, room construction, input, movement, rotation, and animation loop.  
+Preserved old jump/collision math in a labeled scrap section for future use.
