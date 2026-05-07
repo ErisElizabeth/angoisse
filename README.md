@@ -102,3 +102,15 @@ Added debug labels so the coordinate system can no longer gaslight me.
 Refactored `game.js` into a clear Macro B-style structure.  
 Separated constants, scene setup, materials, geometry, player body, room construction, input, movement, rotation, and animation loop.  
 Preserved old jump/collision math in a labeled scrap section for future use.
+
+## V0.0.21 Alpha Dev
+
+Expanded the world beyond a single chamber.
+
+Added a second room and began building reusable multi-room structure.  
+Created collision walls inside the room-building system so placed rooms can carry their own boundaries.  
+Fixed the rotation-clipping issue that allowed the player body to force itself through walls.  
+Added a tunnel connecting the two rooms.  
+Added debug collision controls: `G` disables collision for ghost-mode testing, and `H` restores hard boundaries.
+
+The prisoner can now escape, but only when the operator permits it.

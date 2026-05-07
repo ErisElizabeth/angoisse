@@ -42,11 +42,11 @@ const wallEastColor = 0x1e856d;
 const wallWestColor = 0x3e0b4d;
 const floorColor = 0xb89898;
 const ceilingColor = 0x591a1a;
-
+// debugging tool
+let collisionEnabled = true;
 // Debug labels
 const showDebugLabels = true;
 const debugLabelScale = new THREE.Vector3(8, 4, 1);
-
 // Old tetrahedron math, hoarded for later.
 // This was used before switching to normalized tetrahedron vertex positions.
 /*
@@ -146,21 +146,45 @@ createPlayerConnectors();
 // ======================================================
 
 const roomA = createRoom(roomSize, roomTransparency);
-roomA.position.set(0, 0, 0);
-scene.add(roomA);
+roomA.group.position.set(0, 0, 0);
+scene.add(roomA.group);
 
 const roomB = createRoom(roomSize, roomTransparency);
-roomB.position.set(0, 0, -70);
-scene.add(roomB);
+roomB.group.position.set(0, 0, -70);
+scene.add(roomB.group);
+
+// Collect all room colliders into one master list
+const roomColliders = [...roomA.colliders, ...roomB.colliders];
+
+function isTouchingRoomCollider() {
+	playerGroup.updateMatrixWorld(true);
+
+	return playerNodes.some((node) => {
+		const nodeWorldPosition = new THREE.Vector3();
+		node.getWorldPosition(nodeWorldPosition);
+
+		const nodeSphere = new THREE.Sphere(nodeWorldPosition, playerDim);
+
+		return roomColliders.some((collider) => {
+			collider.updateMatrixWorld(true);
+
+			const colliderBox = new THREE.Box3().setFromObject(collider);
+
+			return colliderBox.intersectsSphere(nodeSphere);
+		});
+	});
+}
+
+const tunnelAB = createTunnelBetweenRooms(-roomSize / 2, -70 + roomSize / 2, 5);
 
 // ======================================================
 // 8. DEBUG LABELS
 // ======================================================
 
 if (showDebugLabels) {
-	createRoomAxisLabels();
+	createRoomAxisLabels(roomA.group, roomSize);
+	createRoomAxisLabels(roomB.group, roomSize);
 }
-
 // ======================================================
 // 9. LIGHTING
 // ======================================================
@@ -177,6 +201,20 @@ scene.add(ambientLight);
 // ======================================================
 
 const keys = {};
+
+window.addEventListener('keydown', (event) => {
+	keys[event.key.toLowerCase()] = true;
+
+	if (event.key.toLowerCase() === 'g') {
+		collisionEnabled = false;
+		console.log('Collision OFF');
+	}
+
+	if (event.key.toLowerCase() === 'h') {
+		collisionEnabled = true;
+		console.log('Collision ON');
+	}
+});
 
 window.addEventListener('keydown', (event) => {
 	keys[event.key.toLowerCase()] = true;
@@ -299,15 +337,93 @@ function createRoom(size, transparency = 0.4) {
 		part.material.opacity = transparency;
 		roomGroup.add(part);
 	});
+	// Invisible collision walls
+	const northCollider = new THREE.Mesh(
+		new THREE.BoxGeometry(size, size, wallThickness),
+		new THREE.MeshBasicMaterial({ visible: false })
+	);
 
-	return roomGroup;
+	const southCollider = new THREE.Mesh(
+		new THREE.BoxGeometry(size, size, wallThickness),
+		new THREE.MeshBasicMaterial({ visible: false })
+	);
+
+	const eastCollider = new THREE.Mesh(
+		new THREE.BoxGeometry(wallThickness, size, size),
+		new THREE.MeshBasicMaterial({ visible: false })
+	);
+
+	const westCollider = new THREE.Mesh(
+		new THREE.BoxGeometry(wallThickness, size, size),
+		new THREE.MeshBasicMaterial({ visible: false })
+	);
+
+	const floorCollider = new THREE.Mesh(
+		new THREE.BoxGeometry(size, wallThickness, size),
+		new THREE.MeshBasicMaterial({ visible: false })
+	);
+
+	const ceilingCollider = new THREE.Mesh(
+		new THREE.BoxGeometry(size, wallThickness, size),
+		new THREE.MeshBasicMaterial({ visible: false })
+	);
+
+	northCollider.position.copy(northWall.position);
+	southCollider.position.copy(southWall.position);
+	eastCollider.position.copy(eastWall.position);
+	westCollider.position.copy(westWall.position);
+	floorCollider.position.copy(floor.position);
+	ceilingCollider.position.copy(ceiling.position);
+
+	const colliders = [northCollider, southCollider, eastCollider, westCollider, floorCollider, ceilingCollider];
+
+	colliders.forEach((collider) => {
+		roomGroup.add(collider);
+	});
+	return {
+		group: roomGroup,
+		colliders,
+	};
+}
+
+function createTunnelBetweenRooms(startZ, endZ, radius = 5) {
+	const tunnelLength = Math.abs(endZ - startZ);
+	const tunnelCenterZ = (startZ + endZ) / 2;
+
+	const tunnelGeometry = new THREE.CylinderGeometry(
+		radius,
+		radius,
+		tunnelLength,
+		32,
+		1,
+		true // openEnded: no caps
+	);
+
+	const tunnelMaterial = new THREE.MeshStandardMaterial({
+		color: 0x444466,
+		transparent: true,
+		opacity: 0.45,
+		side: THREE.DoubleSide,
+	});
+
+	const tunnel = new THREE.Mesh(tunnelGeometry, tunnelMaterial);
+
+	// CylinderGeometry runs along Y by default.
+	// Rotate it so its length runs along Z.
+	tunnel.rotation.x = Math.PI / 2;
+
+	tunnel.position.set(0, 0, tunnelCenterZ);
+
+	scene.add(tunnel);
+
+	return tunnel;
 }
 
 // ======================================================
 // 13. DEBUG LABEL HELPERS
 // ======================================================
 
-function createTextLabel(mainText, subText, position) {
+function createTextLabel(mainText, subText, position, parent = scene) {
 	const canvas = document.createElement('canvas');
 	canvas.width = 1024;
 	canvas.height = 512;
@@ -338,53 +454,96 @@ function createTextLabel(mainText, subText, position) {
 	sprite.position.set(position.x, position.y, position.z);
 	sprite.scale.copy(debugLabelScale);
 
-	scene.add(sprite);
+	parent.add(sprite);
 
 	return sprite;
 }
 
-function createRoomAxisLabels() {
-	createTextLabel('Y+', 'ceiling', {
-		x: 0,
-		y: roomSize / 2 - 1,
-		z: 0,
-	});
+function createRoomAxisLabels(roomGroup, size) {
+	createTextLabel(
+		'HOME',
+		'0, 0, 0',
+		{
+			x: 0,
+			y: 0,
+			z: 0,
+		},
+		roomGroup
+	);
 
-	createTextLabel('Y-', 'floor', {
-		x: 0,
-		y: -roomSize / 2 + 1,
-		z: 0,
-	});
+	createTextLabel(
+		'Y+',
+		'ceiling',
+		{
+			x: 0,
+			y: size / 2 - 1,
+			z: 0,
+		},
+		roomGroup
+	);
 
-	createTextLabel('Z-', 'north', {
-		x: 0,
-		y: 0,
-		z: -roomSize / 2 + 1,
-	});
+	createTextLabel(
+		'Y-',
+		'floor',
+		{
+			x: 0,
+			y: -size / 2 + 1,
+			z: 0,
+		},
+		roomGroup
+	);
 
-	createTextLabel('Z+', 'south', {
-		x: 0,
-		y: 0,
-		z: roomSize / 2 - 1,
-	});
+	createTextLabel(
+		'Z-',
+		'north',
+		{
+			x: 0,
+			y: 0,
+			z: -size / 2 + 1,
+		},
+		roomGroup
+	);
 
-	createTextLabel('X+', 'east', {
-		x: roomSize / 2 - 1,
-		y: 0,
-		z: 0,
-	});
+	createTextLabel(
+		'Z+',
+		'south',
+		{
+			x: 0,
+			y: 0,
+			z: size / 2 - 1,
+		},
+		roomGroup
+	);
 
-	createTextLabel('X-', 'west', {
-		x: -roomSize / 2 + 1,
-		y: 0,
-		z: 0,
-	});
+	createTextLabel(
+		'X+',
+		'east',
+		{
+			x: size / 2 - 1,
+			y: 0,
+			z: 0,
+		},
+		roomGroup
+	);
+
+	createTextLabel(
+		'X-',
+		'west',
+		{
+			x: -size / 2 + 1,
+			y: 0,
+			z: 0,
+		},
+		roomGroup
+	);
 }
 // ======================================================
 // 14. MOVEMENT / CAMERA / BOUNDS
 // ======================================================
 
 function movePlayer() {
+	const oldPosition = playerGroup.position.clone();
+
 	if (keys['w'] || keys['arrowup']) playerGroup.position.z -= playerMoveSpeed;
 	if (keys['s'] || keys['arrowdown']) playerGroup.position.z += playerMoveSpeed;
 	if (keys['a'] || keys['arrowleft']) playerGroup.position.x -= playerMoveSpeed;
@@ -392,6 +551,10 @@ function movePlayer() {
 
 	if (keys['z']) playerGroup.position.y += playerMoveSpeed;
 	if (keys['shift']) playerGroup.position.y -= playerMoveSpeed;
+
+	if (collisionEnabled && isTouchingRoomCollider()) {
+		playerGroup.position.copy(oldPosition);
+	}
 }
 
 function moveCamera() {
@@ -434,9 +597,15 @@ function clampPlayerToBounds() {
 // ======================================================
 
 function rotatePlayerGroup() {
+	const oldRotation = playerGroup.rotation.clone();
+
 	playerGroup.rotation.x += playerGroupSpinSpeed;
 	playerGroup.rotation.y += playerGroupSpinSpeed;
 	playerGroup.rotation.z += playerGroupSpinSpeed;
+
+	if (collisionEnabled && isTouchingRoomCollider()) {
+		playerGroup.rotation.copy(oldRotation);
+	}
 }
 
 function rotatePlayerNodes() {
