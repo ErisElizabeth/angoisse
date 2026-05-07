@@ -92,7 +92,7 @@ const bounds = {
 // ======================================================
 
 const collectionNodeRadius = 0.45;
-const collectionNodeHitRadius = 0.75;
+const collectionNodeHitRadius = 2.5;
 
 const collectionNodeGeometry = new THREE.TorusKnotGeometry(collectionNodeRadius, 0.12, 80, 12);
 
@@ -139,12 +139,26 @@ const haloGeometry = new THREE.IcosahedronGeometry(playerDim * 1.3, 0);
 
 const collectionNode = new THREE.Mesh(collectionNodeGeometry, collectionNodeMaterial);
 
-collectionNode.position.set(0, 0, -35);
+collectionNode.position.set(-5, 5, -10);
 collectionNode.userData.collected = false;
 collectionNode.userData.hitRadius = collectionNodeHitRadius;
 collectionNode.userData.fadeSpeed = 0.03;
 
 scene.add(collectionNode);
+
+const collectionDebugSphere = new THREE.Mesh(
+	new THREE.SphereGeometry(collectionNodeHitRadius, 16, 16),
+	new THREE.MeshBasicMaterial({
+		color: 0xffff00,
+		wireframe: true,
+		transparent: true,
+		opacity: 0.35,
+	})
+);
+
+collectionDebugSphere.position.copy(collectionNode.position);
+scene.add(collectionDebugSphere);
+
 // ======================================================
 // 6. PLAYER / TETRAHEDRON BODY
 // ======================================================

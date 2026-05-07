@@ -122,3 +122,9 @@ Created a glowing torus-knot collection object with spherical hit detection.
 The collection node now detects contact with the tetrahedral player body, fades out, and removes itself from the scene when collected.
 
 It’s alive.
+
+## V0.0.23 Alpha Dev
+
+Moved the collection node to a more challenging position at `(-5, 5, -10)`.  
+Increased the collection hitbox radius to make the node reliably collectable during movement testing.  
+Added a temporary wireframe sphere to visualize the collection hitbox for debugging purposes.
