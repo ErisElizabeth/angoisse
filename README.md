@@ -136,5 +136,17 @@ Added a second collection node in room B.
 Collection nodes now include wireframe debug hitboxes.  
 Touching a collection node turns collision off.  
 Manual debug controls remain active: `G` disables collision and `H` restores collision.
+GitHub Actions recovered and the project deployed successfully.  
+Created a shortcut to GitHub Status for future deployment troubleshooting.
 
 Reality is now conditional.
+
+## V0.0.25 Alpha Dev
+
+Established rudimentary — read as “janky” — gameplay.
+
+Collection nodes now affect game state by turning collision off.  
+Added a restore-collision plane in room B that turns collision back on when crossed.  
+Moved the restore plane farther into the room to prevent the rotating tetrahedral body from getting trapped as its trailing node crosses the boundary.
+
+Behold me.

@@ -263,6 +263,34 @@ if (showDebugLabels) {
   createRoomAxisLabels(roomA.group, roomSize);
   createRoomAxisLabels(roomB.group, roomSize);
 }
+
+// ======================================================
+// 8.1 COLLISION RESTORE PLANE
+// ======================================================
+
+const restorePlaneMaterial = new THREE.MeshBasicMaterial({
+  color: 0x00ffff,
+  transparent: true,
+  opacity: 0.25,
+  side: THREE.DoubleSide,
+});
+
+const restorePlane = new THREE.Mesh(
+  new THREE.PlaneGeometry(roomSize, roomSize),
+  restorePlaneMaterial,
+);
+
+// Room B is centered at z = -70.
+// Its south/+Z wall is at roomB.z + roomSize / 2.
+// Put the restore plane just inside room B from that wall.
+restorePlane.position.set(
+  roomB.group.position.x,
+  roomB.group.position.y,
+  roomB.group.position.z + roomSize / 2 - tetraRadius * 2.5,
+);
+
+scene.add(restorePlane);
+
 // ======================================================
 // 9. LIGHTING
 // ======================================================
@@ -599,6 +627,29 @@ function createRoom(size, transparency = 0.4) {
   };
 }
 
+function checkRestorePlaneCollision() {
+  // If collision is already on, the restore plane has nothing to do.
+  if (collisionEnabled) return;
+
+  const planeZ = restorePlane.position.z;
+  const triggerDistance = tetraRadius;
+
+  const dz = Math.abs(playerGroup.position.z - planeZ);
+
+  const withinPlaneX =
+    playerGroup.position.x >= restorePlane.position.x - roomSize / 2 &&
+    playerGroup.position.x <= restorePlane.position.x + roomSize / 2;
+
+  const withinPlaneY =
+    playerGroup.position.y >= restorePlane.position.y - roomSize / 2 &&
+    playerGroup.position.y <= restorePlane.position.y + roomSize / 2;
+
+  if (dz <= triggerDistance && withinPlaneX && withinPlaneY) {
+    collisionEnabled = true;
+    console.log("Restore plane touched: collision ON");
+  }
+}
+
 function createTunnelBetweenRooms(startZ, endZ, radius = 5) {
   const tunnelLength = Math.abs(endZ - startZ);
   const tunnelCenterZ = (startZ + endZ) / 2;
@@ -887,6 +938,7 @@ function animate() {
   snapCamera();
   checkCollectionNodeCollisions();
   updateCollectionNodes();
+  checkRestorePlaneCollision();
 
   // TEMP TEST:
   // Bounds are currently disabled while exploring room placement.
